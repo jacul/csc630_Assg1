@@ -1,3 +1,7 @@
+/**
+ *You can press Enter key to switch between fullscreen mode and normal mode.
+ *author @xiangdongzhu
+ */
 #include <stdlib.h>			// standard definitions
 #include <stdio.h>			// C I/O (for sprintf) 
 #include <math.h>			// standard definitions
@@ -19,32 +23,28 @@
 GLint TOGGLE_INTERVAL = 10000;
 GLfloat windowHeight, windowWidth;
 GLfloat triangleColor[] = {0,1.0,0};
+
 GLint LPRESSED = FALSE;
 GLint RPRESSED = FALSE;
+
+GLint FULLSCREEN = FALSE;
+
 GLfloat LINE_SEGMENT = 20.0;
 GLfloat CIRCLE_X =0.0;
 GLfloat CIRCLE_Y =0.0;
 GLfloat DIAMOND_X = 0.0;
 GLfloat DIAMOND_Y = 0.0;
 
-const float DEG2RAD = 3.14159/180;
-
-//-----------------------------------------------------------------------
 //	Sets up some default OpenGL values.
-//-----------------------------------------------------------------------
 
 void myInit()
 {
     glClearColor(0, 0, 0, 1.0);		// background color
-    //glShadeModel(GL_FLAT);		// flat shading
     glShadeModel(GL_SMOOTH);		// smooth shading
 }
 
-
-//-----------------------------------------------------------------------
 // reshape callback function
-//	This is called each time the window is reshaped
-//-----------------------------------------------------------------------
+
 void myReshape(int winWidth, int winHeight) 
 {
 	
@@ -65,23 +65,22 @@ void myReshape(int winWidth, int winHeight)
 }
 
 //draw a circle based on its radius and position, indeed, we are going to draw a bunch of lines.
-void drawCircle(GLfloat radius, GLfloat x, GLfloat y)
+
+void drawCircle(GLfloat r, GLfloat x, GLfloat y)
 {
+	const float DR = 3.14159/180;
 	glBegin(GL_POLYGON);
 	
 	for (int i=0; i < 360; i+=(360/LINE_SEGMENT))
 	{
-		GLfloat degInRad = i*DEG2RAD;
-		glVertex2f(x + cos(degInRad)*radius, y + sin(degInRad)*radius);//calculate the position
+		GLfloat deg = i * DR;
+		glVertex2f(x + cos(deg)*r, y + sin(deg)*r);//calculate the position
 	}
 	
 	glEnd();
 }
 
-//-----------------------------------------------------------------------
 // display callback function
-//	This is called each time application needs to redraw itself.
-//-----------------------------------------------------------------------
 
 void myDisplay()
 {
@@ -122,20 +121,17 @@ void myDisplay()
 	glutSwapBuffers();			// swap buffers
 }
 
-
-
-//-----------------------------------------------------------------------
 // keyboard callback function
-//	This is called whenever a keyboard key is hit.
-//-----------------------------------------------------------------------
 
 void myKeyboard(unsigned char c, int x, int y)
 {
     switch (c)
     {
 		case 'q':
+		case 'Q':
 			exit(0);			// exit
 			break;
+		case 'C':
 		case 'c':
 			if(LINE_SEGMENT==20.0)
 				LINE_SEGMENT=100.0;
@@ -143,6 +139,17 @@ void myKeyboard(unsigned char c, int x, int y)
 				LINE_SEGMENT=20.0;
 			}
 			break;
+		case 13:
+			if (FULLSCREEN) {
+				glutReshapeWindow(400, 400);
+				glutPositionWindow(100, 100);
+				FULLSCREEN=FALSE;
+			}else {
+				glutFullScreen();
+				FULLSCREEN=TRUE;
+			}
+			break;
+
 	}
 	
     glutPostRedisplay();		// request redisplay
@@ -223,10 +230,8 @@ void myTimeOut(int id) {
 	glutTimerFunc(TOGGLE_INTERVAL, myTimeOut, 0);  // request next timer event
 }
 
-//-----------------------------------------------------------------------
 // main program
-//	Where everything begins.
-//-----------------------------------------------------------------------
+// set up callbacks
 
 int main(int argc, char **argv)
 {
